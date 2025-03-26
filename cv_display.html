@@ -32,6 +32,12 @@
             margin-bottom: 10px;
             display: block; /* Ensures proper layout */
         }
+        /* Fallback embed styles */
+        .embed-container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
     </style>
 </head>
 <body>
@@ -39,41 +45,51 @@
     <div class="pdf-container" id="pdf-container">
         <!-- PDFs will be loaded here dynamically -->
     </div>
+    <!-- Fallback embed for mobile -->
+    <div class="embed-container" id="pdf-embed" style="display: none;">
+        <embed src="/public/CV.Mortadha.Boufaied.pdf" width="100%" height="100%">
+    </div>
 
     <script>
-        var url = './public/CV.Mortadha.Boufaied.pdf';
+        var url = '/public/CV.Mortadha.Boufaied.pdf'; // Ensure the correct file path
 
-        pdfjsLib.getDocument(url).promise.then(pdf => {
-            var container = document.getElementById('pdf-container');
+        // Check if PDF.js is available, otherwise show the embed fallback
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                var container = document.getElementById('pdf-container');
 
-            function renderPage(pageNumber) {
-                pdf.getPage(pageNumber).then(page => {
-                    var canvas = document.createElement('canvas');
-                    var context = canvas.getContext('2d');
-                    var scale = 2.5; // High scale for better quality
-                    var viewport = page.getViewport({ scale: scale });
+                function renderPage(pageNumber) {
+                    pdf.getPage(pageNumber).then(page => {
+                        var canvas = document.createElement('canvas');
+                        var context = canvas.getContext('2d');
+                        var scale = 2.5; // High scale for better quality
+                        var viewport = page.getViewport({ scale: scale });
 
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
 
-                    var renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
+                        var renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
 
-                    page.render(renderContext).promise.then(() => {
-                        container.appendChild(canvas);
-                        if (pageNumber < pdf.numPages) {
-                            renderPage(pageNumber + 1); // Render next page
-                        }
+                        page.render(renderContext).promise.then(() => {
+                            container.appendChild(canvas);
+                            if (pageNumber < pdf.numPages) {
+                                renderPage(pageNumber + 1); // Render next page
+                            }
+                        });
                     });
-                });
-            }
+                }
 
-            renderPage(1); // Start rendering from page 1
-        }).catch(error => {
-            console.error('Error loading PDF:', error);
-        });
+                renderPage(1); // Start rendering from page 1
+            }).catch(error => {
+                console.error('Error loading PDF:', error);
+            });
+        } else {
+            // If pdf.js is not available, show the embed as fallback
+            document.getElementById('pdf-embed').style.display = 'block';
+        }
     </script>
 
 </body>
