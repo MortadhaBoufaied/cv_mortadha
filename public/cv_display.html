@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            overflow: auto;
+        }
+        .pdf-container {
+            width: 90%;
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            display: block; /* Ensures proper layout */
+        }
+        /* Fallback embed styles */
+        .embed-container {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="pdf-container" id="pdf-container">
+        <!-- PDFs will be loaded here dynamically -->
+    </div>
+    <!-- Fallback embed for mobile -->
+    <div class="embed-container" id="pdf-embed" style="display: none;">
+        <embed src="/public/CV.Mortadha.Boufaied.pdf" width="100%" height="100%">
+    </div>
+
+    <script>
+        var url = './CV.Mortadha.Boufaied.pdf';  // Correct path for Vercel, as the PDF is in the 'public' folder
+
+        // Check if PDF.js is available, otherwise show the embed fallback
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                var container = document.getElementById('pdf-container');
+
+                function renderPage(pageNumber) {
+                    pdf.getPage(pageNumber).then(page => {
+                        var canvas = document.createElement('canvas');
+                        var context = canvas.getContext('2d');
+                        var scale = 2.5; // High scale for better quality
+                        var viewport = page.getViewport({ scale: scale });
+
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        var renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+
+                        page.render(renderContext).promise.then(() => {
+                            container.appendChild(canvas);
+                            if (pageNumber < pdf.numPages) {
+                                renderPage(pageNumber + 1); // Render next page
+                            }
+                        });
+                    });
+                }
+
+                renderPage(1); // Start rendering from page 1
+            }).catch(error => {
+                console.error('Error loading PDF:', error);
+            });
+        } else {
+            // If pdf.js is not available, show the embed as fallback
+            document.getElementById('pdf-embed').style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
